@@ -16,6 +16,10 @@ def load_blosum62(filepath):
 def get_score(a, b, score_matrix):
     if a == "*" or b == "*":
         return -99999  # padding
+    # simple cost matrix
+    if a == b: return 10
+    else     : return -1
+    # simple cost matrix
     if (a, b) in score_matrix:
         return score_matrix[(a, b)]
     elif (b, a) in score_matrix:
@@ -85,12 +89,28 @@ def pairwise_alignment(X, Y, score_matrix, gap_penalty=-2):
 
     return dp, "".join(align_X), "".join(align_Y)
 
-if __name__ == "__main__":
+def pa_pair(x, y):
     score_matrix = load_blosum62("blosum62.txt")
-    x = "GGATTGT"
-    y = "GGAAGG"
     dp, aligned_x, aligned_y = pairwise_alignment(x, y, score_matrix)
     print("DP matrix:\n", np.array(dp))
     print("\nAligned sequences:")
     print(aligned_x)
     print(aligned_y)
+
+if __name__ == "__main__":
+    x1 = "GGATTGT"
+    x2 = "GGAAGG"
+    x3 = "AAGGTT"
+    x4 = "AGGT"
+    pa_pair(x1, x3)
+    pa_pair(x1, x4)
+    pa_pair(x2, x3)
+    pa_pair(x2, x4)
+
+
+    # l = [x1, x2, x3, x4]
+    # for i in range(len(l)):
+    #     for j in range(len(l)):
+    #         if i >= j: continue
+    #         print(f"pair{i+1}, {j+1}")
+    #         pa_pair(l[i], l[j])

@@ -14,7 +14,7 @@ from DrugMAN.model import DrugMAN
 class Trainer:
     def __init__(self, test_bcs, train_generator, val_generator, test_generator, device):
 
-        self.epochs = 4
+        self.epochs = 400
         self.batch_size = 512
         self.test_bcs = test_bcs
 
@@ -30,7 +30,7 @@ class Trainer:
         m = nn.Sigmoid()
         loss = BCE_loss(torch.squeeze(m(input)), target)
         return loss
-        
+
     def adjust_lr(self, optimizer, current_epoch, max_epoch, lr_min, lr_max, warmup=True):
         warmup_epoch = 20 if warmup else 0
         if current_epoch < warmup_epoch:
@@ -56,11 +56,16 @@ class Trainer:
             self.adjust_lr(optimizer, epoch, self.epochs, lr_min=0, lr_max=3e-5, warmup=True)
             for step, (v_d, v_p, batch_label) in enumerate(self.train_generator):
                 v_d, v_p, batch_label = v_d.to(self.device), v_p.to(self.device), batch_label.to(self.device)
-                v_dp = torch.cat((v_d, v_p), axis=1)
-                v_dp = v_dp.view(self.batch_size, 2, 512)
+                v_dp = torch.stack([v_d, v_p], axis=1)
                 v_dp = v_dp.to(self.device)
                 optimizer.zero_grad()
                 y_pred = self.model(v_dp)
+
+                # debug
+                # print(y_pred)
+                # input("END")
+                # debug
+
                 batch_loss = self.BCE_loss(y_pred, batch_label)
                 loss_sum += batch_loss.item()
                 batch_loss.backward()

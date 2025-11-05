@@ -69,8 +69,6 @@ def sample_negative(data):
     return negative
 
 
-
-
 if __name__ == "__main__":
     df = pd.read_csv("data/all_bind.csv")
     chem = df["pubchem_cid"].to_numpy()
@@ -113,4 +111,7 @@ if __name__ == "__main__":
     train_save = pd.DataFrame(np.concatenate([train_com, train_labels], axis=1).astype(int), columns=["pubchem_cid", "gene_id", "label"])
     dev_save = pd.DataFrame(np.concatenate([dev_com, dev_labels], axis=1).astype(int), columns=["pubchem_cid", "gene_id", "label"])
     test_save = pd.DataFrame(np.concatenate([test_com, test_labels], axis=1).astype(int), columns=["pubchem_cid", "gene_id", "label"])
-    print(train_save)
+
+    train_save.to_csv("bind_train.csv", index=False)
+    dev_save.to_csv("bind_val.csv", index=False)
+    test_save.to_csv("bind_test.csv", index=False)

@@ -9,11 +9,12 @@ class DrugMANDataset:
     def __init__(self, file_csv, file_emb):
         self.file_csv = file_csv
         self.file_emb = file_emb
+        self.all_binds = "data/all_bind.csv"
 
     def load_data(self):
-        train = pd.read_csv(self.file_csv + "/bind_train_part1.csv")
-        val = pd.read_csv(self.file_csv + "/bind_val_part1.csv")
-        test = pd.read_csv(self.file_csv + "/bind_test_part1.csv")
+        train = pd.read_csv(self.file_csv + "/bind_train.csv")
+        val = pd.read_csv(self.file_csv + "/bind_val.csv")
+        test = pd.read_csv(self.file_csv + "/bind_test.csv")
 
         return train, val, test
 
@@ -24,11 +25,14 @@ class DrugMANDataset:
         return drug_emb, target_emb
 
     def get_dataloader(self):
+        # all_binds = pd.read_csv(self.all_binds)
+        # print(all_binds.shape)
+        # print(np.unique(all_binds["pubchem_cid"].to_numpy()).shape)
+        # print(np.unique(all_binds["gene_id"].to_numpy()).shape)
+
         train, val, test = self.load_data()
         drug_emb, target_emb = self.load_embed()
 
-        # Based on the paired drug-target pair,
-        # the corresponding drug embeddings and target embeddings were matched
         train_drug_emb = drug_emb.loc[train['pubchem_cid'], ]
         train_target_emb = target_emb.loc[train['gene_id'], ]
 
@@ -75,28 +79,3 @@ class DrugMANDataset:
             test_bcs = len(test_dataset)
 
         return train_loader, val_loader, test_loader, test_bcs
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

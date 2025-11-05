@@ -1,0 +1,7 @@
+number unique chemicals: 5135
+number unique drugs: 2894
+
+
+positive pairs: 20565
+negative pairs is sampling from unseen pair, so its number is  1:1 with positive pairs
+negative pairs : positive pairs = 1:1

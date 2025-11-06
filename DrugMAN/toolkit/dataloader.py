@@ -12,9 +12,10 @@ class DrugMANDataset:
         self.all_binds = "data/all_bind.csv"
 
     def load_data(self):
-        train = pd.read_csv(self.file_csv + "/bind_train.csv")
-        val = pd.read_csv(self.file_csv + "/bind_val.csv")
-        test = pd.read_csv(self.file_csv + "/bind_test.csv")
+        part = 1
+        train = pd.read_csv(self.file_csv + f"/bind_train_part{part}.csv")
+        val = pd.read_csv(self.file_csv + f"/bind_val_part{part}.csv")
+        test = pd.read_csv(self.file_csv + f"/bind_test_part{part}.csv")
 
         return train, val, test
 
@@ -26,11 +27,25 @@ class DrugMANDataset:
 
     def get_dataloader(self):
         # all_binds = pd.read_csv(self.all_binds)
-        # print(all_binds.shape)
-        # print(np.unique(all_binds["pubchem_cid"].to_numpy()).shape)
-        # print(np.unique(all_binds["gene_id"].to_numpy()).shape)
+        # all_binds = all_binds[["pubchem_cid", "gene_id"]]
 
         train, val, test = self.load_data()
+        # train = train[train["label"] == 1]
+        # val = val[val["label"] == 1]
+        # test = test[test["label"] == 1]
+
+        # all_bind_temp = pd.concat([train, val, test], axis=0)
+        # all_bind_temp = all_bind_temp[["pubchem_cid", "gene_id"]]
+
+
+        # all_binds = all_binds.sort_values(by=all_binds.columns.tolist()).reset_index(drop=True)
+        # all_bind_temp= all_bind_temp.sort_values(by=all_bind_temp.columns.tolist()).reset_index(drop=True)
+
+        # print(all_binds)
+        # print(all_bind_temp)
+        # print(all_binds.equals(all_bind_temp))
+
+        # input()
         drug_emb, target_emb = self.load_embed()
 
         train_drug_emb = drug_emb.loc[train['pubchem_cid'], ]

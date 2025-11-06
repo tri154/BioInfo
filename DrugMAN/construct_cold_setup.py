@@ -48,7 +48,7 @@ if __name__ == "off":
             np.savetxt("train_dev_cold.txt", remain)
             input("found")
 
-def sample_negative(data):
+def sample_negative(data, pair):
     total = data.shape[0]
     uchem = np.unique(data[:, 0])
     udrug = np.unique(data[:, 1])
@@ -96,9 +96,9 @@ if __name__ == "__main__":
     train, dev = train_test_split(train_dev_cold, test_size=0.14, shuffle=True)
 
     train, dev, test
-    train_neg = sample_negative(train)
-    dev_neg = sample_negative(dev)
-    test_neg = sample_negative(test)
+    train_neg = sample_negative(train, pair)
+    dev_neg = sample_negative(dev, pair)
+    test_neg = sample_negative(test, pair)
 
     train_com = np.concatenate([train, train_neg], axis=0)
     dev_com = np.concatenate([dev, dev_neg], axis=0)

@@ -57,70 +57,72 @@ def id2seq(df, all_binds):
 
 
 # main
+def main():
+    nbits = 512
 
-nbits = 512
+    # dataFolder = 'data/warm_start'
+    dataFolder = 'data/cold_start'
+    dataset = DrugMANDataset(dataFolder, None)
+    df_train, df_val, df_test = dataset.load_data()
+    all_binds = pd.read_csv("data/all_bind.csv")
 
-dataFolder = 'data/warm_start'
-# dataFolder = 'data/cold_start'
-dataset = DrugMANDataset(dataFolder, None)
-df_train, df_val, df_test = dataset.load_data()
-all_binds = pd.read_csv("data/all_bind.csv")
+    train_drug, train_target = id2seq(df_train, all_binds)
+    test_drug, test_target = id2seq(df_test, all_binds)
 
-train_drug, train_target = id2seq(df_train, all_binds)
-test_drug, test_target = id2seq(df_test, all_binds)
+    train_drug_emb = ecfp4_new(train_drug, nbits)
+    train_target_emb= aac(train_target)
+    x_train = np.concatenate([train_drug_emb, train_target_emb], axis=1)
 
-train_drug_emb = ecfp4_new(train_drug, nbits)
-train_target_emb= aac(train_target)
-x_train = np.concatenate([train_drug_emb, train_target_emb], axis=1)
+    test_drug_emb = ecfp4_new(test_drug, nbits)
+    test_target_emb = aac(test_target)
+    x_test = np.concatenate([test_drug_emb, test_target_emb], axis=1)
 
-test_drug_emb = ecfp4_new(test_drug, nbits)
-test_target_emb = aac(test_target)
-x_test = np.concatenate([test_drug_emb, test_target_emb], axis=1)
+    y_train = df_train["label"]
+    y_test = df_test["label"]
 
-y_train = df_train["label"]
-y_test = df_test["label"]
+    # rf = RandomForestClassifier(
+    #     n_estimators=300,
+    #     max_depth=None,
+    #     random_state=42,
+    #     n_jobs=-1
+    # ) # 840, 867
 
-# rf = RandomForestClassifier(
-#     n_estimators=300,
-#     max_depth=None,
-#     random_state=42,
-#     n_jobs=-1
-# ) # 840, 867
+    # rf = XGBClassifier(
+    #     n_estimators=300,
+    #     learning_rate=0.05,
+    #     max_depth=6,
+    #     subsample=0.8,
+    #     colsample_bytree=0.8,
+    #     random_state=42,
+    #     n_jobs=-1,
+    #     eval_metric='logloss'
+    # ) # 845, 870
 
-# rf = XGBClassifier(
-#     n_estimators=300,
-#     learning_rate=0.05,
-#     max_depth=6,
-#     subsample=0.8,
-#     colsample_bytree=0.8,
-#     random_state=42,
-#     n_jobs=-1,
-#     eval_metric='logloss'
-# ) # 845, 870
+    # rf = LGBMClassifier(
+    #     n_estimators=300,
+    #     learning_rate=0.05,
+    #     max_depth=-1,
+    #     subsample=0.8,
+    #     colsample_bytree=0.8,
+    #     random_state=42,
+    #     n_jobs=-1
+    # ) # 841, 867
 
-# rf = LGBMClassifier(
-#     n_estimators=300,
-#     learning_rate=0.05,
-#     max_depth=-1,
-#     subsample=0.8,
-#     colsample_bytree=0.8,
-#     random_state=42,
-#     n_jobs=-1
-# ) # 841, 867
+    rf = CatBoostClassifier(
+        iterations=300,
+        learning_rate=0.05,
+        depth=6,
+        random_state=42,
+        verbose=0
+    )
 
-rf = CatBoostClassifier(
-    iterations=300,
-    learning_rate=0.05,
-    depth=6,
-    random_state=42,
-    verbose=0
-)
+    rf.fit(x_train, y_train)
 
-rf.fit(x_train, y_train)
+    y_pred_prob = rf.predict_proba(x_test)[:, 1]
 
-y_pred_prob = rf.predict_proba(x_test)[:, 1]
+    auroc = roc_auc_score(y_test, y_pred_prob)
+    auprc = average_precision_score(y_test, y_pred_prob)
 
-auroc = roc_auc_score(y_test, y_pred_prob)
-auprc = average_precision_score(y_test, y_pred_prob)
+    print("auroc: ", auroc, "auprc: ", auprc)
 
-print("auroc: ", auroc, "auprc: ", auprc)
+main()

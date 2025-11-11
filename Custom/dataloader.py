@@ -32,6 +32,7 @@ class DrugMANDataset:
         all_binds_target = all_binds[['gene_id', 'sequence']].drop_duplicates(subset='gene_id')
 
         train, val, test = self.load_data()
+        train = train.sample(frac=1, random_state=42) # shuffle
 
         train_drug_seqs = train.merge(all_binds_drug[['pubchem_cid', 'rdkit_smile']], on='pubchem_cid', how='left')['rdkit_smile']
         train_target_seqs = train.merge(all_binds_target[['gene_id', 'sequence']], on='gene_id', how='left')['sequence']

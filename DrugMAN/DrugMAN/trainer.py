@@ -104,10 +104,9 @@ class Trainer:
                 self.model.eval()
                 for step, (v_d, v_p, batch_label) in enumerate(self.val_generator):
                     v_d, v_p, batch_label = v_d.to(self.device), v_p.to(self.device), batch_label.to(self.device)
-                    v_dp = torch.cat((v_d, v_p), axis=1)
-                    v_dp = v_dp.view(self.batch_size, 2, 512)
-                    v_dp = v_dp.to(self.device)
-                    val_pred = self.model(v_dp)
+                    v_d = v_d.to(self.device)
+                    v_p = v_p.to(self.device)
+                    val_pred = self.model(v_d, v_p)
                     val_loss = self.BCE_loss(val_pred, batch_label)
                     val_losses += val_loss.item()
                     m = nn.Sigmoid()
@@ -120,10 +119,9 @@ class Trainer:
         elif dataloader == "test":
             for step, (v_d, v_p, batch_label) in enumerate(self.test_generator):
                 v_d, v_p, batch_label = v_d.to(self.device), v_p.to(self.device), batch_label.to(self.device)
-                v_dp = torch.cat((v_d, v_p), axis=1)
-                v_dp = v_dp.view(self.test_bcs, 2, 512)
-                v_dp = v_dp.to(self.device)
-                test_pred = self.best_model(v_dp)
+                v_d = v_d.to(self.device)
+                v_p = v_p.to(self.device)
+                test_pred = self.best_model(v_d, v_p)
                 test_loss = self.BCE_loss(test_pred, batch_label)
                 test_loss = test_loss.item()
                 m = nn.Sigmoid()

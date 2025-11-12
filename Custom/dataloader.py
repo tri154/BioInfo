@@ -26,13 +26,19 @@ class DrugMANDataset:
 
         return drug_emb, target_emb
 
+    def get_all_binds(self, ):
+        all_binds = pd.read_csv(self.all_binds)
+        all_binds_drug = all_binds[['pubchem_cid', 'rdkit_smile']].drop_duplicates(subset='pubchem_cid')
+        all_binds_target = all_binds[['gene_id', 'sequence']].drop_duplicates(subset='gene_id')
+        return all_binds, all_binds_drug, all_binds_target
+
     def get_dataset(self):
         all_binds = pd.read_csv(self.all_binds)
         all_binds_drug = all_binds[['pubchem_cid', 'rdkit_smile']].drop_duplicates(subset='pubchem_cid')
         all_binds_target = all_binds[['gene_id', 'sequence']].drop_duplicates(subset='gene_id')
 
         train, val, test = self.load_data()
-        train = train.sample(frac=1, random_state=42) # shuffle
+        # train = train.sample(frac=1, random_state=42) # shuffle
 
         train_drug_seqs = train.merge(all_binds_drug[['pubchem_cid', 'rdkit_smile']], on='pubchem_cid', how='left')['rdkit_smile']
         train_target_seqs = train.merge(all_binds_target[['gene_id', 'sequence']], on='gene_id', how='left')['sequence']
@@ -56,9 +62,9 @@ class DrugMANDataset:
         val_label = np.array(val['label'])
         test_label = np.array(test['label'])
 
-        train_set = tf.data.Dataset.from_tensor_slices((train_drug_seqs, train_target_seqs, train_label))
-        val_set = tf.data.Dataset.from_tensor_slices((val_drug_seqs, val_target_seqs, val_label))
-        test_set = tf.data.Dataset.from_tensor_slices((test_drug_seqs, test_target_seqs, test_label))
+        train_set = (train_drug_seqs, train_target_seqs, train_label)
+        val_set = (val_drug_seqs, val_target_seqs, val_label)
+        test_set = (test_drug_seqs, test_target_seqs, test_label)
 
         return train_set, val_set, test_set
 

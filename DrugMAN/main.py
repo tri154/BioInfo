@@ -13,13 +13,18 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def main():
     # load data and get dataloader
     dataFolder = 'data/warm_start'
-    embFolder = 'data/bionic_embed'
+    # dataFolder = 'data/cold_start'
+    # embFolder = 'data/bionic_embed'
+    embFolder = 'data/seq_embed'
     dataset = DrugMANDataset(dataFolder, embFolder)
     df_train, df_val, df_test = dataset.load_data()
     train_dataloader, val_dataloader, test_dataloader, test_bcs = dataset.get_dataloader()
 
     # start train
-    drugman_trainer = Trainer(test_bcs, train_dataloader, val_dataloader, test_dataloader, device)
+
+    custom = embFolder=='data/seq_embed'
+    # custom = False
+    drugman_trainer = Trainer(test_bcs, train_dataloader, val_dataloader, test_dataloader, device, custom=custom)
     train_list, val_list, test_list, test_pred, best_model = drugman_trainer.train()
 
     # result
@@ -42,7 +47,6 @@ def main():
     plot_losses(train_list, val_list, save_fileFoder)
     plot_roc_curve(y_true, y_score, save_fileFoder)
     plot_pr_curve(y_true, y_score, save_fileFoder)
-
 
 if __name__ == '__main__':
     main()

@@ -5,11 +5,16 @@ from DrugMAN.encoder import Encoder
 
 
 class DrugMAN(nn.Sequential):
-    def __init__(self):
+    def __init__(self, custom=False):
         super(DrugMAN, self).__init__()
         # mlp 参数
-        self.input_dim_drug = 512
-        self.input_dim_protein = 512
+        self.custom = custom
+        if custom:
+            self.input_dim_drug = 768
+            self.input_dim_protein = 768
+        else:
+            self.input_dim_drug = 512
+            self.input_dim_protein = 512
         self.dropout = nn.Dropout(0.3)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -30,9 +35,23 @@ class DrugMAN(nn.Sequential):
 
         self.predictor = nn.ModuleList([nn.Linear(dims[i], dims[i + 1]) for i in range(layer_size)])
 
-    def forward(self, v_dp):
+        if custom:
+            self.Wpr = nn.Sequential(
+                nn.Linear(15599, 8000),
+                nn.ReLU(),
+                nn.Linear(8000, 2048),
+                nn.ReLU(),
+                nn.Linear(2048, 768),
+                nn.ReLU()
+            )
+
+    def forward(self, v_d, v_p):
+        if self.custom:
+            v_p = self.Wpr(v_p)
+        v_dp = torch.stack([v_d, v_p], axis=1)
+        bs = v_dp.shape[0]
         v_f = self.encoder(v_dp)    # [bcs, 2,512]
-        v_f = v_f.view(-1, 1, 1024)  # [bcs, 1, 1024]
+        v_f = v_f.view(bs, 1, -1)  # [bcs, 1, 1024]
         v_f = torch.squeeze(v_f)     # [bcs, 1024]
         for i, l in enumerate(self.predictor):
             if i == (len(self.predictor) - 1):
@@ -40,5 +59,3 @@ class DrugMAN(nn.Sequential):
             else:
                 v_f = self.dropout(F.relu(l(v_f)))
         return v_f
-
-

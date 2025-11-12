@@ -52,4 +52,27 @@ def main_drug():
     emb_df.index.name = "pubchem_cid"
     emb_df.to_csv("drug_features.tsv", sep="\t", float_format="%.6f")
 
-main_drug()
+def main_target():
+    seq_len = 5181
+    dataFolder = 'data/warm_start'
+    embFolder = 'data/bionic_embed'
+    dataset = DrugMANDataset(dataFolder, embFolder)
+    all_binds, drugs, targets = dataset.get_all_binds()
+    target_encoder, target_tokenizer = get_target_embedding_model(seq_len=seq_len)
+    target_embs = list()
+    for s in targets['sequence']:
+        inputs = target_tokenizer.encode_X([s], seq_len)
+        inputs = [tf.convert_to_tensor(x) for x in inputs]
+        local_emb, global_emb = target_encoder(inputs, training=False)
+        target_embs.append(global_emb)
+        print(len(target_embs))
+    target_embs = tf.concat(target_embs, axis=0)
+    target_embs = target_embs.numpy()
+    gene_id = targets['gene_id']
+    emb_df = pd.DataFrame(target_embs, index=gene_id.values)
+    emb_df.index.name = "gene_id"
+    emb_df.to_csv("target_features.tsv", sep="\t", float_format="%.6f")
+    print("saved")
+
+main_target()
+# example_target()

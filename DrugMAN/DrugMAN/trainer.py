@@ -12,7 +12,7 @@ from DrugMAN.model import DrugMAN
 
 
 class Trainer:
-    def __init__(self, test_bcs, train_generator, val_generator, test_generator, device):
+    def __init__(self, test_bcs, train_generator, val_generator, test_generator, device, custom=False):
 
         self.epochs = 400
         self.batch_size = 512
@@ -23,6 +23,7 @@ class Trainer:
         self.train_generator = train_generator
         self.val_generator = val_generator
         self.test_generator = test_generator
+        self.custom = custom
 
 
     def BCE_loss(self, input, target):
@@ -41,7 +42,7 @@ class Trainer:
             param_group['lr'] = lr
 
     def train(self):
-        self.model = DrugMAN().to(self.device)
+        self.model = DrugMAN(self.custom).to(self.device)
         optimizer = optim.Adam(self.model.parameters(), lr=3e-5, weight_decay=0.02)  # 这里调整参数，来训练模型
         best_val_auroc = 0
         train_list = []
@@ -56,10 +57,10 @@ class Trainer:
             self.adjust_lr(optimizer, epoch, self.epochs, lr_min=0, lr_max=3e-5, warmup=True)
             for step, (v_d, v_p, batch_label) in enumerate(self.train_generator):
                 v_d, v_p, batch_label = v_d.to(self.device), v_p.to(self.device), batch_label.to(self.device)
-                v_dp = torch.stack([v_d, v_p], axis=1)
-                v_dp = v_dp.to(self.device)
+                v_d = v_d.to(self.device)
+                v_p = v_p.to(self.device)
                 optimizer.zero_grad()
-                y_pred = self.model(v_dp)
+                y_pred = self.model(v_d, v_p)
 
                 # debug
                 # print(y_pred)

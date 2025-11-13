@@ -44,10 +44,9 @@ class DrugMAN(nn.Sequential):
             #     nn.Linear(2048, 768),
             #     nn.ReLU()
             # )
-
             self.Wpr = nn.Sequential(
                 nn.Linear(15599, 768),
-                nn.ReLU
+                nn.ReLU(),
             )
 
     def forward(self, v_d, v_p):

@@ -29,7 +29,7 @@ class MultiHeadAttention(nn.Module):
         self.scale = torch.sqrt(torch.FloatTensor([input_dim // n_heads]))
 
     def forward(self, query, key, value, mask=None):
-
+        # consider drug and target as sequence of length 2.
         residual = query
         bsz = query.shape[0]
         Q = self.w_q(query).to(self.device)
@@ -122,6 +122,3 @@ class Encoder(nn.Module):
             enc_output = enc_layer(enc_output)
 
         return enc_output
-
-
-
